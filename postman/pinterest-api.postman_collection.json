@@ -1,0 +1,198 @@
+{
+  "info": {
+    "name": "Pinterest API",
+    "description": "Self-hosted Pinterest image search proxy. Set `baseUrl` and `apiKey` in the environment before running.\n\n**Query params on /search:**\n- `q` (required) — search text\n- `count` — 1..50, default 25\n- `bookmark` — pagination cursor from previous response\n- `fresh=1` — bypass cache read\n- `skip_pages=N` — walk N upstream Pinterest pages before returning (0..20). Different N = different real pins from Pinterest.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "b5f2c0a4-1f8e-4d2a-9d5e-pin-scrp-0001"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:9000", "type": "string" },
+    { "key": "apiKey", "value": "change-me", "type": "string" },
+    { "key": "bookmark", "value": "", "type": "string" }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      { "key": "key", "value": "x-api-key", "type": "string" },
+      { "key": "value", "value": "{{apiKey}}", "type": "string" },
+      { "key": "in", "value": "header", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "auth": { "type": "noauth" },
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Liveness probe. No auth required."
+      },
+      "response": []
+    },
+    {
+      "name": "Search - basic",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test('has pins array', () => pm.expect(json.pins).to.be.an('array'));",
+              "if (json.bookmark) {",
+              "  pm.collectionVariables.set('bookmark', json.bookmark);",
+              "  console.log('Saved bookmark:', json.bookmark);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/search?q=fashion editorial&count=25",
+          "host": ["{{baseUrl}}"],
+          "path": ["search"],
+          "query": [
+            { "key": "q", "value": "fashion editorial" },
+            { "key": "count", "value": "25" }
+          ]
+        },
+        "description": "First page. Test script auto-saves `bookmark` collection variable for the next request."
+      },
+      "response": []
+    },
+    {
+      "name": "Search - paginated (uses saved bookmark)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/search?q=fashion editorial&count=25&bookmark={{bookmark}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["search"],
+          "query": [
+            { "key": "q", "value": "fashion editorial" },
+            { "key": "count", "value": "25" },
+            { "key": "bookmark", "value": "{{bookmark}}" }
+          ]
+        },
+        "description": "Run **Search - basic** first to populate `{{bookmark}}`. Re-runnable until response bookmark is null."
+      },
+      "response": []
+    },
+    {
+      "name": "Search - max count",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/search?q=minimalist interior&count=50",
+          "host": ["{{baseUrl}}"],
+          "path": ["search"],
+          "query": [
+            { "key": "q", "value": "minimalist interior" },
+            { "key": "count", "value": "50" }
+          ]
+        },
+        "description": "Count clamps to max 50."
+      },
+      "response": []
+    },
+    {
+      "name": "Search - fresh (bypass cache)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/search?q=fashion editorial&count=10&fresh=1",
+          "host": ["{{baseUrl}}"],
+          "path": ["search"],
+          "query": [
+            { "key": "q", "value": "fashion editorial" },
+            { "key": "count", "value": "10" },
+            { "key": "fresh", "value": "1" }
+          ]
+        },
+        "description": "Skips cache read. Response header `X-Cache: BYPASS`."
+      },
+      "response": []
+    },
+    {
+      "name": "Search - skip_pages (deeper pins)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "console.log('pin ids:', json.pins.map(p => p.id).join(','));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/search?q=fashion editorial&count=10&skip_pages=3",
+          "host": ["{{baseUrl}}"],
+          "path": ["search"],
+          "query": [
+            { "key": "q", "value": "fashion editorial" },
+            { "key": "count", "value": "10" },
+            { "key": "skip_pages", "value": "3" }
+          ]
+        },
+        "description": "Server walks N upstream Pinterest pages, returns that page's pins. Clamped 0..20. Client picks N — vary it (1, 2, 3, ...) to get different real pins. No JS randomness on the server side."
+      },
+      "response": []
+    },
+    {
+      "name": "Error - missing q (400)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/search",
+          "host": ["{{baseUrl}}"],
+          "path": ["search"]
+        },
+        "description": "Expect `400 Missing required query param: q`."
+      },
+      "response": []
+    },
+    {
+      "name": "Error - bad api key (401)",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "apikey",
+          "apikey": [
+            { "key": "key", "value": "x-api-key", "type": "string" },
+            { "key": "value", "value": "wrong-key", "type": "string" },
+            { "key": "in", "value": "header", "type": "string" }
+          ]
+        },
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/search?q=test",
+          "host": ["{{baseUrl}}"],
+          "path": ["search"],
+          "query": [{ "key": "q", "value": "test" }]
+        },
+        "description": "Expect `401 Unauthorized`."
+      },
+      "response": []
+    }
+  ]
+}
