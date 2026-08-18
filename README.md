@@ -1,6 +1,6 @@
 # pin-scrp
 
-Pinterest image search behind your own API key. One endpoint, JSON out.
+Pinterest image search behind your own API key (no pinterest api key). One endpoint, JSON out.
 
 ```bash
 curl "http://localhost:7777/search?q=fashion+editorial&count=5" \
