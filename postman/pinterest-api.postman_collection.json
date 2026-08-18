@@ -1,21 +1,45 @@
 {
   "info": {
     "name": "Pinterest API",
-    "description": "Self-hosted Pinterest image search API (https://github.com/mxhiraz/pin-scrp).\n\nSet `baseUrl` and `apiKey` in the **Pinterest API - local** environment before running. `apiKey` must match `API_KEY` in the server's `.env`.\n\n**Endpoints**\n- `GET /health` — no auth, returns `{ status, uptime }`.\n- `GET /search` — requires the `x-api-key` header.\n\n**Query params on /search**\n- `q` (required) — search text. Control characters stripped, trimmed, cut to 200 chars.\n- `count` — 1..50, default 25.\n- `bookmark` — pagination cursor from a previous response. `null` in a response means the end.\n- `fresh=1` — bypass the cache read.\n- `skip_pages=N` — walk N upstream Pinterest pages before returning (0..20). Different N returns different real pins.\n\n**Response headers**\n- `X-Cache` — `HIT`, `MISS`, or `BYPASS` (when `fresh` or `skip_pages` is used).\n- `X-Request-ID` — echoed from the request if sent, otherwise generated. Shows up in server logs.\n- `Retry-After` — seconds to wait, sent with `429` only.\n\n**Error codes:** 400 missing/empty `q`, 401 bad key, 404 unknown path, 429 rate limited, 500 server missing `API_KEY`, 502 Pinterest failed.",
+    "description": "Pinterest image search API (https://github.com/mxhiraz/pin-scrp).\n\nPick the \"Pinterest API - local\" environment, set baseUrl if you moved off 7777, and set apiKey to whatever API_KEY is in the server's .env.\n\n/health takes no key. /search wants it in the x-api-key header, and takes q (required, cut to 200 chars), count (1..50, default 25), bookmark (cursor from an earlier response), fresh=1 to skip the cache, and skip_pages=N to walk N Pinterest pages first (0..20).\n\nResponses carry X-Cache (HIT, MISS, or BYPASS) and X-Request-ID. A 429 also carries Retry-After. Errors come back as { error, code }: 400 for a missing or empty q, 401 for a bad key, 404 for an unknown path, 429 when rate limited, 500 when the server has no API_KEY, 502 when Pinterest itself failed.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_postman_id": "b5f2c0a4-1f8e-4d2a-9d5e-pin-scrp-0001"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:9000", "type": "string" },
-    { "key": "apiKey", "value": "change-me", "type": "string" },
-    { "key": "bookmark", "value": "", "type": "string" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:7777",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "change-me",
+      "type": "string"
+    },
+    {
+      "key": "bookmark",
+      "value": "",
+      "type": "string"
+    }
   ],
   "auth": {
     "type": "apikey",
     "apikey": [
-      { "key": "key", "value": "x-api-key", "type": "string" },
-      { "key": "value", "value": "{{apiKey}}", "type": "string" },
-      { "key": "in", "value": "header", "type": "string" }
+      {
+        "key": "key",
+        "value": "x-api-key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
     ]
   },
   "item": [
@@ -37,25 +61,44 @@
       ],
       "request": {
         "method": "GET",
-        "auth": { "type": "noauth" },
+        "auth": {
+          "type": "noauth"
+        },
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/health",
-          "host": ["{{baseUrl}}"],
-          "path": ["health"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
         },
-        "description": "Liveness probe. No auth required. `uptime` is in seconds."
+        "description": "No key needed. uptime is in seconds."
       },
       "response": [
         {
           "name": "200 OK",
           "originalRequest": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
           },
           "status": "OK",
           "code": 200,
-          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
           "body": "{\n  \"status\": \"ok\",\n  \"uptime\": 5\n}"
         }
       ]
@@ -94,14 +137,24 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/search?q=fashion editorial&count=25",
-          "host": ["{{baseUrl}}"],
-          "path": ["search"],
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "search"
+          ],
           "query": [
-            { "key": "q", "value": "fashion editorial" },
-            { "key": "count", "value": "25" }
+            {
+              "key": "q",
+              "value": "fashion editorial"
+            },
+            {
+              "key": "count",
+              "value": "25"
+            }
           ]
         },
-        "description": "First page. The test script auto-saves the `bookmark` collection variable for the pagination request below."
+        "description": "Page one. The test script stashes the bookmark for the paging request below."
       },
       "response": [
         {
@@ -110,20 +163,39 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/search?q=fashion editorial&count=25",
-              "host": ["{{baseUrl}}"],
-              "path": ["search"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "search"
+              ],
               "query": [
-                { "key": "q", "value": "fashion editorial" },
-                { "key": "count", "value": "25" }
+                {
+                  "key": "q",
+                  "value": "fashion editorial"
+                },
+                {
+                  "key": "count",
+                  "value": "25"
+                }
               ]
             }
           },
           "status": "OK",
           "code": 200,
           "header": [
-            { "key": "Content-Type", "value": "application/json" },
-            { "key": "X-Cache", "value": "MISS" },
-            { "key": "X-Request-ID", "value": "ec19ccee-f4ed-4661-8483-f88278fed767" }
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "X-Cache",
+              "value": "MISS"
+            },
+            {
+              "key": "X-Request-ID",
+              "value": "ec19ccee-f4ed-4661-8483-f88278fed767"
+            }
           ],
           "body": "{\n  \"query\": \"fashion editorial\",\n  \"count\": 1,\n  \"bookmark\": \"Y2JVSG81V2sxcmNHRlpWM1J5VFVad1YxcEhSbE5X...\",\n  \"pins\": [\n    {\n      \"id\": \"36239971996748877\",\n      \"title\": \"Minimal Tie Accessories That Make Tailoring Feel Editorial\",\n      \"description\": \"Minimal tie accessories bring a cinematic editorial mood...\",\n      \"link\": null,\n      \"pinterest_url\": \"https://www.pinterest.com/pin/36239971996748877\",\n      \"images\": {\n        \"170x\": { \"url\": \"https://i.pinimg.com/236x/47/e2/a0/47e2a0.jpg\", \"width\": 236, \"height\": 354 },\n        \"236x\": { \"url\": \"https://i.pinimg.com/236x/47/e2/a0/47e2a0.jpg\", \"width\": 236, \"height\": 354 },\n        \"474x\": { \"url\": \"https://i.pinimg.com/474x/47/e2/a0/47e2a0.jpg\", \"width\": 474, \"height\": 711 },\n        \"736x\": { \"url\": \"https://i.pinimg.com/736x/47/e2/a0/47e2a0.jpg\", \"width\": 736, \"height\": 1104 },\n        \"orig\": { \"url\": \"https://i.pinimg.com/originals/47/e2/a0/47e2a0.webp\", \"width\": 1024, \"height\": 1536 }\n      },\n      \"dominant_color\": \"#ccc1b2\",\n      \"saves\": 0,\n      \"created_at\": \"Thu, 09 Jul 2026 14:43:57 +0000\",\n      \"board\": { \"id\": \"36240040690912166\", \"name\": \"Editorial\" },\n      \"creator\": {\n        \"username\": \"kanyarat5554\",\n        \"display_name\": \"Kanyarat\",\n        \"avatar_url\": \"https://s.pinimg.com/images/user/default_75.png\"\n      }\n    }\n  ]\n}"
         }
@@ -148,14 +220,24 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/search?q=fashion editorial&count=25",
-          "host": ["{{baseUrl}}"],
-          "path": ["search"],
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "search"
+          ],
           "query": [
-            { "key": "q", "value": "fashion editorial" },
-            { "key": "count", "value": "25" }
+            {
+              "key": "q",
+              "value": "fashion editorial"
+            },
+            {
+              "key": "count",
+              "value": "25"
+            }
           ]
         },
-        "description": "Same query and count as **Search - basic**, so it hits the cache. Fails if `CACHE_TTL_SECONDS=0` or the TTL has already expired."
+        "description": "Same query and count as Search - basic, so it should come from the cache. Won't if CACHE_TTL_SECONDS is 0 or the TTL ran out."
       },
       "response": []
     },
@@ -171,7 +253,7 @@
               "const json = pm.response.json();",
               "pm.test('has pins array', () => pm.expect(json.pins).to.be.an('array'));",
               "if (json.bookmark) pm.collectionVariables.set('bookmark', json.bookmark);",
-              "else console.log('End of results — bookmark is null.');"
+              "else console.log('End of results, bookmark is null.');"
             ]
           }
         }
@@ -181,15 +263,28 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/search?q=fashion editorial&count=25&bookmark={{bookmark}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["search"],
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "search"
+          ],
           "query": [
-            { "key": "q", "value": "fashion editorial" },
-            { "key": "count", "value": "25" },
-            { "key": "bookmark", "value": "{{bookmark}}" }
+            {
+              "key": "q",
+              "value": "fashion editorial"
+            },
+            {
+              "key": "count",
+              "value": "25"
+            },
+            {
+              "key": "bookmark",
+              "value": "{{bookmark}}"
+            }
           ]
         },
-        "description": "Run **Search - basic** first to populate `{{bookmark}}`. Each run saves the next cursor, so it is re-runnable until the response bookmark is `null`."
+        "description": "Run Search - basic first so {{bookmark}} has a value. Every run saves the next cursor, so keep hitting send until the bookmark comes back null."
       },
       "response": []
     },
@@ -212,14 +307,24 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/search?q=minimalist interior&count=99",
-          "host": ["{{baseUrl}}"],
-          "path": ["search"],
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "search"
+          ],
           "query": [
-            { "key": "q", "value": "minimalist interior" },
-            { "key": "count", "value": "99" }
+            {
+              "key": "q",
+              "value": "minimalist interior"
+            },
+            {
+              "key": "count",
+              "value": "99"
+            }
           ]
         },
-        "description": "`count` is clamped to 1..50, so 99 behaves as 50."
+        "description": "count is clamped to 1..50, so 99 acts as 50."
       },
       "response": []
     },
@@ -242,15 +347,28 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/search?q=fashion editorial&count=10&fresh=1",
-          "host": ["{{baseUrl}}"],
-          "path": ["search"],
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "search"
+          ],
           "query": [
-            { "key": "q", "value": "fashion editorial" },
-            { "key": "count", "value": "10" },
-            { "key": "fresh", "value": "1" }
+            {
+              "key": "q",
+              "value": "fashion editorial"
+            },
+            {
+              "key": "count",
+              "value": "10"
+            },
+            {
+              "key": "fresh",
+              "value": "1"
+            }
           ]
         },
-        "description": "Skips the cache read and the cache write. Response header `X-Cache: BYPASS`. Accepts `1`, `true`, or `yes`."
+        "description": "Skips the cache both ways. Look for X-Cache: BYPASS. Also accepts true or yes."
       },
       "response": []
     },
@@ -274,15 +392,28 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/search?q=fashion editorial&count=10&skip_pages=3",
-          "host": ["{{baseUrl}}"],
-          "path": ["search"],
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "search"
+          ],
           "query": [
-            { "key": "q", "value": "fashion editorial" },
-            { "key": "count", "value": "10" },
-            { "key": "skip_pages", "value": "3" }
+            {
+              "key": "q",
+              "value": "fashion editorial"
+            },
+            {
+              "key": "count",
+              "value": "10"
+            },
+            {
+              "key": "skip_pages",
+              "value": "3"
+            }
           ]
         },
-        "description": "The server walks N upstream Pinterest pages and returns the next one. Clamped to 0..20 and never cached. Vary N (1, 2, 3, ...) to get different real pins — each page costs one extra upstream request, so it is slower."
+        "description": "Walks N Pinterest pages and gives you the next one, 0..20, never cached. Every page is one more request to Pinterest."
       },
       "response": []
     },
@@ -301,17 +432,32 @@
       ],
       "request": {
         "method": "GET",
-        "header": [{ "key": "X-Request-ID", "value": "postman-demo-1" }],
+        "header": [
+          {
+            "key": "X-Request-ID",
+            "value": "postman-demo-1"
+          }
+        ],
         "url": {
           "raw": "{{baseUrl}}/search?q=fashion editorial&count=5",
-          "host": ["{{baseUrl}}"],
-          "path": ["search"],
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "search"
+          ],
           "query": [
-            { "key": "q", "value": "fashion editorial" },
-            { "key": "count", "value": "5" }
+            {
+              "key": "q",
+              "value": "fashion editorial"
+            },
+            {
+              "key": "count",
+              "value": "5"
+            }
           ]
         },
-        "description": "Send your own `X-Request-ID` and the server reuses it in the response and in its logs. Omit it and the server generates a UUID."
+        "description": "Send your own id and the server keeps it in the response and the logs. Leave it off and it makes a UUID."
       },
       "response": []
     },
@@ -338,10 +484,14 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/search",
-          "host": ["{{baseUrl}}"],
-          "path": ["search"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "search"
+          ]
         },
-        "description": "Expect `{ \"error\": \"Missing required query param: q\", \"code\": 400 }`."
+        "description": "Expect { \"error\": \"Missing required query param: q\", \"code\": 400 }."
       },
       "response": []
     },
@@ -364,11 +514,20 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/search?q=%20%20%20",
-          "host": ["{{baseUrl}}"],
-          "path": ["search"],
-          "query": [{ "key": "q", "value": "%20%20%20" }]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "search"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "%20%20%20"
+            }
+          ]
         },
-        "description": "Whitespace-only or control-character-only queries are rejected: `{ \"error\": \"Empty query after sanitization\", \"code\": 400 }`."
+        "description": "Spaces and control characters alone don't count as a query: { \"error\": \"Empty query after sanitization\", \"code\": 400 }."
       },
       "response": []
     },
@@ -391,19 +550,40 @@
         "auth": {
           "type": "apikey",
           "apikey": [
-            { "key": "key", "value": "x-api-key", "type": "string" },
-            { "key": "value", "value": "wrong-key", "type": "string" },
-            { "key": "in", "value": "header", "type": "string" }
+            {
+              "key": "key",
+              "value": "x-api-key",
+              "type": "string"
+            },
+            {
+              "key": "value",
+              "value": "wrong-key",
+              "type": "string"
+            },
+            {
+              "key": "in",
+              "value": "header",
+              "type": "string"
+            }
           ]
         },
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/search?q=test",
-          "host": ["{{baseUrl}}"],
-          "path": ["search"],
-          "query": [{ "key": "q", "value": "test" }]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "search"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "test"
+            }
+          ]
         },
-        "description": "A missing or wrong `x-api-key` returns `401 Unauthorized`."
+        "description": "Wrong or missing x-api-key gives 401."
       },
       "response": []
     },
@@ -426,10 +606,14 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/does-not-exist",
-          "host": ["{{baseUrl}}"],
-          "path": ["does-not-exist"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "does-not-exist"
+          ]
         },
-        "description": "Only `/health` and `/search` exist."
+        "description": "Only /health and /search exist."
       },
       "response": []
     },
@@ -441,13 +625,13 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "// Fire enough requests to drain the bucket, then assert the 429 shape.",
-              "// Set RATE_LIMIT_RPM low (e.g. 3) on the server to see this quickly.",
+              "// Drain the bucket, then assert the 429 shape.",
+              "// Set RATE_LIMIT_RPM=3 on the server to reach it sooner.",
               "if (pm.response.code === 429) {",
               "  pm.test('has Retry-After', () => pm.expect(pm.response.headers.get('Retry-After')).to.be.a('string'));",
               "  pm.test('error body', () => pm.expect(pm.response.json()).to.eql({ error: 'Rate limit exceeded', code: 429 }));",
               "} else {",
-              "  pm.test('not rate limited yet — rerun until 429', () => pm.expect(pm.response.code).to.eql(200));",
+              "  pm.test('not rate limited yet, rerun until 429', () => pm.expect(pm.response.code).to.eql(200));",
               "}"
             ]
           }
@@ -458,14 +642,24 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/search?q=rate limit probe&fresh=1",
-          "host": ["{{baseUrl}}"],
-          "path": ["search"],
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "search"
+          ],
           "query": [
-            { "key": "q", "value": "rate limit probe" },
-            { "key": "fresh", "value": "1" }
+            {
+              "key": "q",
+              "value": "rate limit probe"
+            },
+            {
+              "key": "fresh",
+              "value": "1"
+            }
           ]
         },
-        "description": "Per-IP token bucket, `RATE_LIMIT_RPM` requests per minute (default 60). Send it repeatedly until you get `429` plus a `Retry-After` header in seconds. Start the server with `RATE_LIMIT_RPM=3` to trip it in a few clicks."
+        "description": "Token bucket per IP, RATE_LIMIT_RPM a minute (60 by default). Keep sending until it gives 429 plus Retry-After in seconds. Start the server with RATE_LIMIT_RPM=3 if you don't want to click 60 times."
       },
       "response": [
         {
@@ -474,19 +668,35 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/search?q=rate limit probe&fresh=1",
-              "host": ["{{baseUrl}}"],
-              "path": ["search"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "search"
+              ],
               "query": [
-                { "key": "q", "value": "rate limit probe" },
-                { "key": "fresh", "value": "1" }
+                {
+                  "key": "q",
+                  "value": "rate limit probe"
+                },
+                {
+                  "key": "fresh",
+                  "value": "1"
+                }
               ]
             }
           },
           "status": "Too Many Requests",
           "code": 429,
           "header": [
-            { "key": "Content-Type", "value": "application/json" },
-            { "key": "Retry-After", "value": "2" }
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Retry-After",
+              "value": "2"
+            }
           ],
           "body": "{\n  \"error\": \"Rate limit exceeded\",\n  \"code\": 429\n}"
         }

@@ -1,51 +1,32 @@
 # Contributing
 
-Thanks for taking a look. Small, focused pull requests get merged fastest.
-
-## Setup
-
 ```bash
 npm install
-cp .env.example .env   # then set API_KEY to any string for local work
+cp .env.example .env   # any string works as API_KEY locally
 npm run dev
 ```
 
-## Before you open a pull request
+Before you send a PR, `npm run lint` should be clean and `npm test` should pass.
+If you changed how something behaves, put a check in `src/api.test.ts`. Tests
+don't call Pinterest, keep them on the pure helpers so they still run offline.
 
-```bash
-npm run lint   # typecheck, must be clean
-npm test       # self-checks, no network needed
-```
+Match the code that is already there: TypeScript, strict, ES modules, local
+imports ending in `.js`. Don't pull in a dependency for something a few lines can
+do, and leave Redis optional. Comment the why when it isn't obvious, skip the
+what.
 
-If you change behavior, add or update a check in `src/api.test.ts`. Tests must
-not call Pinterest — keep them on pure helpers so they run offline and fast.
+Things worth doing:
 
-## Style
+- fields we throw away that people want back, video pins for one
+- timeouts and retries when Pinterest is having a bad day
+- more endpoints in the same shape, related pins or boards
 
-- TypeScript, strict mode, ES modules. Import local files with the `.js`
-  extension, as the rest of the code does.
-- Match the surrounding code. No new dependencies unless a few lines cannot do
-  the job; Redis is optional and must stay optional.
-- Comment the non-obvious only — why, not what.
+Bug reports are more useful with the request you sent (minus your key), the
+status and body you got, the `X-Request-ID` from the response, and your Node or
+Docker version. If searches all return 502, Pinterest probably changed the
+endpoint, put that in the title so nobody duplicates it.
 
-## Good things to work on
+What won't get merged: anything aimed at dodging rate limits or blocks, proxy
+rotation to hide how much you're pulling, or scraping at scale.
 
-- Pinterest response fields we drop but people want (video pins, rich metadata).
-- Better upstream failure handling: timeouts, retries with backoff.
-- Extra endpoints in the same normalized shape, e.g. related pins or boards.
-
-## Reporting bugs
-
-Include the request you sent (redact your `API_KEY`), the status and body you
-got back, the `X-Request-ID` from the response, and your Node or Docker version.
-
-If Pinterest changed their endpoint and everything returns `502`, say so in the
-issue title — that one affects everybody.
-
-## Scope
-
-This project reads Pinterest's public web endpoint. Pull requests aimed at
-evading rate limits or blocks, rotating proxies to hide traffic volume, or
-scraping at scale will not be merged.
-
-By contributing, you agree your work is released under the [MIT License](LICENSE).
+Anything you send is under the [MIT License](LICENSE).

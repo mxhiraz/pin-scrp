@@ -32,7 +32,7 @@ app.onError((err, c) => {
 
 app.notFound((c) => c.json({ error: "Not found", code: 404 }, 404));
 
-const port = parseInt(process.env.PORT ?? "9000", 10);
+const port = parseInt(process.env.PORT ?? "7777", 10);
 
 serve({ fetch: app.fetch, port }, (info) => {
   console.log(`[pinterest-api] listening on :${info.port}`);

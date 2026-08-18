@@ -20,7 +20,7 @@ export function rateLimit(): MiddlewareHandler {
   const rpm = Math.max(1, parseInt(process.env.RATE_LIMIT_RPM ?? "60", 10));
   const capacity = rpm;
   const refillPerMs = rpm / 60_000;
-  // A bucket idle this long is back at full capacity, so dropping it is a no-op.
+  // A bucket idle this long is full again anyway, so throwing it out costs nothing.
   const idleMs = capacity / refillPerMs;
   let sinceSweep = 0;
 
@@ -28,8 +28,7 @@ export function rateLimit(): MiddlewareHandler {
     const ip = getClientIp(c);
     const now = Date.now();
 
-    // ponytail: full scan every 1000 requests. Fine into the tens of thousands
-    // of client IPs; swap for an LRU if you ever outgrow that.
+    // Scans the whole map every 1000 requests. Fine unless you have ~100k client IPs.
     if (++sinceSweep >= 1000) {
       sinceSweep = 0;
       for (const [key, bucket] of buckets) {

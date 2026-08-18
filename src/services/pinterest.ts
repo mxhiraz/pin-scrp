@@ -114,7 +114,7 @@ export async function searchPinterest({
   try {
     resp = await doFetch(query, url, false);
     if (resp.status === 401 || resp.status === 403) {
-      // Session may be stale — refresh once and retry.
+      // Session may be stale. Refresh once and retry.
       invalidateSession();
       resp = await doFetch(query, url, true);
     }
