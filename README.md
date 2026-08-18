@@ -6,6 +6,7 @@ Pinterest image search behind your own API key. One endpoint, JSON out.
 curl "http://localhost:7777/search?q=fashion+editorial&count=5" \
   -H "x-api-key: your-key"
 ```
+<img width="1800" height="1169" alt="Screenshot 2026-08-18 at 6 28 12 AM" src="https://github.com/user-attachments/assets/8e56777c-eee0-400c-bd71-590222a7486f" />
 
 ```json
 {
