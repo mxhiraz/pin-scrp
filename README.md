@@ -6,40 +6,8 @@ Pinterest image search behind your own API key. One endpoint, JSON out.
 curl "http://localhost:7777/search?q=fashion+editorial&count=5" \
   -H "x-api-key: your-key"
 ```
-<img width="1800" height="1169" alt="Screenshot 2026-08-18 at 6 28 12 AM" src="https://github.com/user-attachments/assets/8e56777c-eee0-400c-bd71-590222a7486f" />
 
-```json
-{
-  "query": "fashion editorial",
-  "count": 5,
-  "bookmark": "Y2JVSG81V2sxcmNHRlpWM1J5VFVad1YxcEhSbE5X...",
-  "pins": [
-    {
-      "id": "36239971996748877",
-      "title": "Minimal Tie Accessories That Make Tailoring Feel Editorial",
-      "description": "Minimal tie accessories bring a cinematic editorial mood...",
-      "link": null,
-      "pinterest_url": "https://www.pinterest.com/pin/36239971996748877",
-      "images": {
-        "170x": { "url": "https://i.pinimg.com/236x/47/e2/a0/47e2a0.jpg", "width": 236, "height": 354 },
-        "236x": { "url": "https://i.pinimg.com/236x/47/e2/a0/47e2a0.jpg", "width": 236, "height": 354 },
-        "474x": { "url": "https://i.pinimg.com/474x/47/e2/a0/47e2a0.jpg", "width": 474, "height": 711 },
-        "736x": { "url": "https://i.pinimg.com/736x/47/e2/a0/47e2a0.jpg", "width": 736, "height": 1104 },
-        "orig": { "url": "https://i.pinimg.com/originals/47/e2/a0/47e2a0.webp", "width": 1024, "height": 1536 }
-      },
-      "dominant_color": "#ccc1b2",
-      "saves": 0,
-      "created_at": "Thu, 09 Jul 2026 14:43:57 +0000",
-      "board": { "id": "36240040690912166", "name": "Editorial" },
-      "creator": {
-        "username": "kanyarat5554",
-        "display_name": "Kanyarat",
-        "avatar_url": "https://s.pinimg.com/images/user/default_75.png"
-      }
-    }
-  ]
-}
-```
+https://github.com/user-attachments/assets/c84e2663-1331-4e08-bca3-d47c55b132e0
 
 Sizes bigger than `236x` come back too, up to the original file, so it is usable
 for moodboards, wallpapers, dataset building, or anything that needs the real
