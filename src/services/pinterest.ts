@@ -39,13 +39,13 @@ function mapImages(raw: Record<string, RawPinterestImage> | undefined): PinImage
   if (!raw) return {};
   const out: PinImageSizes = {};
   for (const k of SIZE_KEYS) {
-    const img = mapImage(raw[k as string]);
+    const img = mapImage(raw[k]);
     if (img) out[k] = img;
   }
   return out;
 }
 
-function mapPin(raw: RawPinterestPin): Pin {
+export function mapPin(raw: RawPinterestPin): Pin {
   const id = raw.id ?? "";
   const board =
     raw.board && (raw.board.id || raw.board.name)
@@ -80,20 +80,19 @@ async function doFetch(
   query: string,
   url: string,
   forceRefresh: boolean,
-  signal?: AbortSignal,
 ): Promise<Response> {
   const session = await getSession(forceRefresh);
   return fetch(url, {
     method: "GET",
     headers: buildAuthedHeaders(query, session),
-    signal,
   });
 }
 
-export async function searchPinterest(
-  { query, count, bookmark }: SearchParams,
-  signal?: AbortSignal,
-): Promise<SearchResponse> {
+export async function searchPinterest({
+  query,
+  count,
+  bookmark,
+}: SearchParams): Promise<SearchResponse> {
   const data: Record<string, unknown> = {
     options: {
       query,
@@ -113,35 +112,31 @@ export async function searchPinterest(
 
   let resp: Response;
   try {
-    resp = await doFetch(query, url, false, signal);
+    resp = await doFetch(query, url, false);
     if (resp.status === 401 || resp.status === 403) {
       // Session may be stale — refresh once and retry.
       invalidateSession();
-      resp = await doFetch(query, url, true, signal);
+      resp = await doFetch(query, url, true);
     }
   } catch (err) {
     throw new PinterestUpstreamError(
       `Pinterest fetch failed: ${(err as Error).message}`,
-      502,
     );
   }
 
   if (!resp.ok) {
-    throw new PinterestUpstreamError(
-      `Pinterest returned ${resp.status}`,
-      502,
-    );
+    throw new PinterestUpstreamError(`Pinterest returned ${resp.status}`);
   }
 
   let json: RawPinterestResponse;
   try {
     json = (await resp.json()) as RawPinterestResponse;
   } catch {
-    throw new PinterestUpstreamError("Pinterest returned invalid JSON", 502);
+    throw new PinterestUpstreamError("Pinterest returned invalid JSON");
   }
 
-  const data2 = json.resource_response?.data;
-  const results = Array.isArray(data2?.results) ? data2.results : [];
+  const payload = json.resource_response?.data;
+  const results = Array.isArray(payload?.results) ? payload.results : [];
   const bookmarkOut = json.resource_response?.bookmark ?? null;
 
   const pins: Pin[] = results

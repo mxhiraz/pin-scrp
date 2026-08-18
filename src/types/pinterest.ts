@@ -44,11 +44,6 @@ export interface SearchResponse {
   pins: Pin[];
 }
 
-export interface ErrorResponse {
-  error: string;
-  code: number;
-}
-
 export interface SearchParams {
   query: string;
   count: number;
@@ -93,15 +88,12 @@ export interface RawPinterestResponse {
       results?: RawPinterestPin[];
     };
     bookmark?: string | null;
-    error?: { message?: string } | null;
   };
 }
 
 export class PinterestUpstreamError extends Error {
-  status: number;
-  constructor(message: string, status = 502) {
+  constructor(message: string) {
     super(message);
     this.name = "PinterestUpstreamError";
-    this.status = status;
   }
 }

@@ -19,7 +19,6 @@ app.get("/health", (c) =>
   c.json({ status: "ok", uptime: Math.floor((Date.now() - startedAt) / 1000) }),
 );
 
-app.use("/search/*", apiKeyAuth(), rateLimit());
 app.use("/search", apiKeyAuth(), rateLimit());
 app.route("/search", searchRouter);
 

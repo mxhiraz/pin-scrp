@@ -2,13 +2,32 @@
   "name": "pinterest-api",
   "version": "1.0.0",
   "description": "Self-hosted Pinterest image search REST API",
+  "keywords": [
+    "pinterest",
+    "search",
+    "api",
+    "images",
+    "rest",
+    "hono",
+    "self-hosted"
+  ],
+  "homepage": "https://github.com/mxhiraz/pin-scrp#readme",
+  "bugs": {
+    "url": "https://github.com/mxhiraz/pin-scrp/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mxhiraz/pin-scrp.git"
+  },
+  "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "tsx --test src/api.test.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",

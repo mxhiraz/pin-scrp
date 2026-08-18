@@ -7,13 +7,13 @@ const MAX_QUERY_LEN = 200;
 const MAX_COUNT = 50;
 const MIN_COUNT = 1;
 
-function sanitizeQuery(raw: string): string {
+export function sanitizeQuery(raw: string): string {
   // strip control chars
   const cleaned = raw.replace(/[\x00-\x1F\x7F]/g, "").trim();
   return cleaned.slice(0, MAX_QUERY_LEN);
 }
 
-function clampCount(raw: string | undefined): number {
+export function clampCount(raw: string | undefined): number {
   if (!raw) return 25;
   const n = parseInt(raw, 10);
   if (!Number.isFinite(n)) return 25;

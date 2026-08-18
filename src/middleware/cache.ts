@@ -24,6 +24,13 @@ class MemoryCache implements CacheStore {
   }
 
   async set(key: string, value: SearchResponse, ttlSeconds: number) {
+    // Entries only expire when read, so drop the dead ones once the map grows.
+    if (this.store.size >= 500) {
+      const now = Date.now();
+      for (const [k, entry] of this.store) {
+        if (entry.expiresAt < now) this.store.delete(k);
+      }
+    }
     this.store.set(key, {
       value,
       expiresAt: Date.now() + ttlSeconds * 1000,
