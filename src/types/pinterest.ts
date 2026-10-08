@@ -105,6 +105,8 @@ export interface RawPinterestPin {
   pin_join?: { visual_annotation?: string[] } | null;
   images?: Record<string, RawPinterestImage>;
   videos?: { video_list?: Record<string, RawPinterestVideo> } | null;
+  /** Idea Pins keep their video here, not in `videos`; most video results are Idea Pins. */
+  story_pin_data?: { pages?: { blocks?: { video?: { video_list?: Record<string, RawPinterestVideo> } | null }[] }[] } | null;
   dominant_color?: string;
   created_at?: string;
   aggregated_pin_data?: {

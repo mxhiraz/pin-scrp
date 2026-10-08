@@ -99,7 +99,8 @@ export async function firstPlayable(
 }
 
 async function resolveVideo(raw: RawPinterestPin): Promise<PinVideo | null> {
-  const candidate = videoCandidate(raw.videos?.video_list);
+  const storyVideo = raw.story_pin_data?.pages?.[0]?.blocks?.find((block) => block.video)?.video?.video_list;
+  const candidate = videoCandidate(raw.videos?.video_list ?? storyVideo);
   if (!candidate) return null;
   const mp4 = await firstPlayable(candidate.mp4s);
   if (!mp4) return null;
@@ -165,10 +166,12 @@ export async function searchPinterest({
   scope = "pins",
   checkVideos = true,
 }: SearchParams): Promise<SearchResponse> {
+  // Pinterest's own Videos tab ranks far off the search; a video search reads All Pins and keeps the videos.
+  const pinterestScope = "pins";
   const data: Record<string, unknown> = {
     options: {
       query,
-      scope,
+      scope: pinterestScope,
       page_size: count,
       ...(bookmark ? { bookmarks: [bookmark] } : {}),
     },
@@ -176,7 +179,7 @@ export async function searchPinterest({
   };
 
   const params = new URLSearchParams({
-    source_url: `/search/${scope}/?q=${encodeURIComponent(query)}`,
+    source_url: `/search/${pinterestScope}/?q=${encodeURIComponent(query)}`,
     data: JSON.stringify(data),
   });
 

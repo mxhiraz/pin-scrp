@@ -80,5 +80,5 @@ export async function getCache(): Promise<CacheStore> {
 }
 
 export function cacheKey(query: string, count: number, bookmark?: string, scope = "pins") {
-  return `search:v2:${scope}:${query}:${count}:${bookmark ?? "start"}`;
+  return `search:v3:${scope}:${query}:${count}:${bookmark ?? "start"}`;
 }
