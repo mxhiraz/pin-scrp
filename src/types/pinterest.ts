@@ -21,6 +21,10 @@ export interface PinCreator {
   username: string;
   display_name: string;
   avatar_url: string | null;
+  followers: number;
+  /** Pinterest marks shops as verified merchants and ad-only accounts as such. */
+  merchant: boolean;
+  ads_only: boolean;
 }
 
 /** A video pin's playable file. Null on photo pins. */
@@ -44,6 +48,14 @@ export interface Pin {
   board: PinBoard | null;
   creator: PinCreator | null;
   video: PinVideo | null;
+  /** Pinterest's own labels for the pin, e.g. "Sunscreen Advertisement". */
+  labels: string[];
+  /** Where the pin links ("instagram.com", a shop), or "Uploaded by user". */
+  domain: string;
+  /** A paid Pinterest ad. */
+  promoted: boolean;
+  /** All reactions added up. */
+  reactions: number;
 }
 
 export interface SearchResponse {
@@ -51,6 +63,8 @@ export interface SearchResponse {
   count: number;
   bookmark: string | null;
   pins: Pin[];
+  /** Pinterest's suggested searches for this query, best first. */
+  guides: string[];
 }
 
 export const SCOPES = ["pins", "videos"] as const;
@@ -83,6 +97,10 @@ export interface RawPinterestPin {
   grid_title?: string;
   description?: string;
   link?: string | null;
+  domain?: string;
+  is_promoted?: boolean;
+  reaction_counts?: Record<string, number>;
+  pin_join?: { visual_annotation?: string[] } | null;
   images?: Record<string, RawPinterestImage>;
   videos?: { video_list?: Record<string, RawPinterestVideo> } | null;
   dominant_color?: string;
@@ -101,6 +119,9 @@ export interface RawPinterestPin {
     full_name?: string;
     image_small_url?: string;
     image_medium_url?: string;
+    follower_count?: number;
+    is_verified_merchant?: boolean;
+    is_ads_only_profile?: boolean;
   };
 }
 
@@ -108,6 +129,7 @@ export interface RawPinterestResponse {
   resource_response?: {
     data?: {
       results?: RawPinterestPin[];
+      rankedGuides?: { term?: string }[];
     };
     bookmark?: string | null;
   };

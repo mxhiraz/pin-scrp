@@ -120,6 +120,9 @@ export function mapPin(raw: RawPinterestPin): Pin {
         display_name: raw.pinner.full_name ?? "",
         avatar_url:
           raw.pinner.image_medium_url ?? raw.pinner.image_small_url ?? null,
+        followers: raw.pinner.follower_count ?? 0,
+        merchant: raw.pinner.is_verified_merchant ?? false,
+        ads_only: raw.pinner.is_ads_only_profile ?? false,
       }
     : null;
 
@@ -136,6 +139,10 @@ export function mapPin(raw: RawPinterestPin): Pin {
     board,
     creator,
     video: null,
+    labels: raw.pin_join?.visual_annotation ?? [],
+    domain: raw.domain ?? "",
+    promoted: raw.is_promoted ?? false,
+    reactions: Object.values(raw.reaction_counts ?? {}).reduce((sum, n) => sum + (Number(n) || 0), 0),
   };
 }
 
@@ -215,10 +222,13 @@ export async function searchPinterest({
       .filter((pin) => pin.video);
   }
 
+  const guides = (payload?.rankedGuides ?? []).flatMap((guide) => (guide?.term ? [guide.term] : []));
+
   return {
     query,
     count: pins.length,
     bookmark: bookmarkOut === "-end-" ? null : bookmarkOut,
     pins,
+    guides,
   };
 }

@@ -32,6 +32,10 @@ test("mapPin fills defaults for a sparse upstream pin", () => {
   assert.equal(pin.board, null);
   assert.equal(pin.creator, null);
   assert.deepEqual(pin.images, {});
+  assert.deepEqual(pin.labels, []);
+  assert.equal(pin.domain, "");
+  assert.equal(pin.promoted, false);
+  assert.equal(pin.reactions, 0);
 });
 
 test("mapPin reads nested board, creator, saves and image sizes", () => {
@@ -43,12 +47,24 @@ test("mapPin reads nested board, creator, saves and image sizes", () => {
     },
     aggregated_pin_data: { aggregated_stats: { saves: 42 } },
     board: { id: "b1", name: "Moodboard" },
-    pinner: { username: "someone", full_name: "Some One" },
+    pinner: { username: "someone", full_name: "Some One", follower_count: 92, is_verified_merchant: true },
+    pin_join: { visual_annotation: ["Sunscreen Advertisement", "Spf Skincare"] },
+    domain: "instagram.com",
+    is_promoted: true,
+    reaction_counts: { "1": 330, "7": 2 },
   });
   assert.equal(pin.title, "Grid title");
   assert.equal(pin.saves, 42);
   assert.deepEqual(pin.board, { id: "b1", name: "Moodboard" });
   assert.equal(pin.creator?.avatar_url, null);
+  assert.deepEqual(
+    { followers: pin.creator?.followers, merchant: pin.creator?.merchant, ads_only: pin.creator?.ads_only },
+    { followers: 92, merchant: true, ads_only: false },
+  );
+  assert.deepEqual(pin.labels, ["Sunscreen Advertisement", "Spf Skincare"]);
+  assert.equal(pin.domain, "instagram.com");
+  assert.equal(pin.promoted, true);
+  assert.equal(pin.reactions, 332);
   assert.equal(pin.images["236x"]?.width, 236);
 });
 
