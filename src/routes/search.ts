@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { searchPinterest } from "../services/pinterest.js";
-import { PinterestUpstreamError } from "../types/pinterest.js";
+import { PinterestUpstreamError, SCOPES, type Scope } from "../types/pinterest.js";
 import { cacheKey, getCache } from "../middleware/cache.js";
 
 const MAX_QUERY_LEN = 200;
@@ -42,6 +42,11 @@ searchRouter.get("/", async (c) => {
   if (!query) {
     return c.json({ error: "Empty query after sanitization", code: 400 }, 400);
   }
+  const rawScope = c.req.query("scope") ?? "pins";
+  if (!SCOPES.includes(rawScope as Scope)) {
+    return c.json({ error: "scope must be pins or videos", code: 400 }, 400);
+  }
+  const scope = rawScope as Scope;
   const count = clampCount(c.req.query("count"));
   const bookmark = c.req.query("bookmark") || undefined;
   const fresh = isTrue(c.req.query("fresh"));
@@ -54,7 +59,7 @@ searchRouter.get("/", async (c) => {
 
   const ttl = Math.max(0, parseInt(process.env.CACHE_TTL_SECONDS ?? "300", 10));
   const cache = await getCache();
-  const key = cacheKey(query, count, bookmark);
+  const key = cacheKey(query, count, bookmark, scope);
 
   if (ttl > 0 && !fresh && !skipPages) {
     const cached = await cache.get(key);
@@ -66,10 +71,10 @@ searchRouter.get("/", async (c) => {
 
   try {
     let cur = bookmark;
-    let result = await searchPinterest({ query, count, bookmark: cur });
+    let result = await searchPinterest({ query, count, bookmark: cur, scope });
     for (let i = 0; i < skipPages && result.bookmark; i++) {
       cur = result.bookmark;
-      result = await searchPinterest({ query, count, bookmark: cur });
+      result = await searchPinterest({ query, count, bookmark: cur, scope });
     }
 
     const cacheable = ttl > 0 && !fresh && !skipPages;

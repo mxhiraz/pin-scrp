@@ -23,6 +23,14 @@ export interface PinCreator {
   avatar_url: string | null;
 }
 
+/** A video pin's playable file. Null on photo pins. */
+export interface PinVideo {
+  mp4: string;
+  width: number;
+  height: number;
+  seconds: number;
+}
+
 export interface Pin {
   id: string;
   title: string;
@@ -35,6 +43,7 @@ export interface Pin {
   created_at: string | null;
   board: PinBoard | null;
   creator: PinCreator | null;
+  video: PinVideo | null;
 }
 
 export interface SearchResponse {
@@ -44,10 +53,22 @@ export interface SearchResponse {
   pins: Pin[];
 }
 
+export const SCOPES = ["pins", "videos"] as const;
+export type Scope = (typeof SCOPES)[number];
+
 export interface SearchParams {
   query: string;
   count: number;
   bookmark?: string;
+  scope?: Scope;
+}
+
+export interface RawPinterestVideo {
+  url?: string;
+  width?: number;
+  height?: number;
+  /** Milliseconds. */
+  duration?: number;
 }
 
 export interface RawPinterestImage {
@@ -63,6 +84,7 @@ export interface RawPinterestPin {
   description?: string;
   link?: string | null;
   images?: Record<string, RawPinterestImage>;
+  videos?: { video_list?: Record<string, RawPinterestVideo> } | null;
   dominant_color?: string;
   created_at?: string;
   aggregated_pin_data?: {

@@ -8,8 +8,10 @@ import {
   PinImage,
   PinImageSizes,
   PinterestUpstreamError,
+  PinVideo,
   RawPinterestImage,
   RawPinterestPin,
+  RawPinterestVideo,
   RawPinterestResponse,
   SearchParams,
   SearchResponse,
@@ -45,6 +47,66 @@ function mapImages(raw: Record<string, RawPinterestImage> | undefined): PinImage
   return out;
 }
 
+// Pinterest search only lists a stream (.m3u8). The same video usually sits as
+// a 720p mp4 under /mc/ or /iht/, but not always (10 of 25 had neither, live
+// check 2026-10-08), so each address is checked before a clip is returned.
+const HLS_PATH = /\/videos\/(?:iht|mc)\/hls\/((?:[0-9a-f]{2}\/){3}[0-9a-f]{32})\.m3u8(?:\?|$)/;
+const MP4_CHECK_TIMEOUT_MS = 5_000;
+
+export interface VideoCandidate {
+  mp4s: string[];
+  width: number;
+  height: number;
+  seconds: number;
+}
+
+export function videoCandidate(
+  list: Record<string, RawPinterestVideo> | undefined,
+): VideoCandidate | null {
+  const entries = Object.values(list ?? {}).filter((v) => v?.url);
+  const direct = entries.find((v) => /\.mp4(?:\?|$)/.test(v.url!));
+  const stream = entries.find((v) => HLS_PATH.test(v.url!));
+  const pick = direct ?? stream;
+  if (!pick) return null;
+  const path = direct ? null : HLS_PATH.exec(pick.url!)![1];
+  return {
+    mp4s: direct
+      ? [direct.url!]
+      : ["mc", "iht"].map((dir) => `https://v1.pinimg.com/videos/${dir}/720p/${path}.mp4`),
+    width: pick.width ?? 0,
+    height: pick.height ?? 0,
+    seconds: Math.round((pick.duration ?? 0) / 100) / 10,
+  };
+}
+
+/** The first address that answers 200, or null. */
+export async function firstPlayable(
+  urls: string[],
+  fetchImpl: typeof fetch = fetch,
+): Promise<string | null> {
+  for (const url of urls) {
+    try {
+      const r = await fetchImpl(url, {
+        method: "HEAD",
+        signal: AbortSignal.timeout(MP4_CHECK_TIMEOUT_MS),
+      });
+      if (r.ok) return url;
+    } catch {
+      // Timeout or network error: try the next address.
+    }
+  }
+  return null;
+}
+
+async function resolveVideo(raw: RawPinterestPin): Promise<PinVideo | null> {
+  const candidate = videoCandidate(raw.videos?.video_list);
+  if (!candidate) return null;
+  const mp4 = await firstPlayable(candidate.mp4s);
+  if (!mp4) return null;
+  const { mp4s: _, ...size } = candidate;
+  return { mp4, ...size };
+}
+
 export function mapPin(raw: RawPinterestPin): Pin {
   const id = raw.id ?? "";
   const board =
@@ -73,6 +135,7 @@ export function mapPin(raw: RawPinterestPin): Pin {
     created_at: raw.created_at ?? null,
     board,
     creator,
+    video: null,
   };
 }
 
@@ -92,11 +155,12 @@ export async function searchPinterest({
   query,
   count,
   bookmark,
+  scope = "pins",
 }: SearchParams): Promise<SearchResponse> {
   const data: Record<string, unknown> = {
     options: {
       query,
-      scope: "pins",
+      scope,
       page_size: count,
       ...(bookmark ? { bookmarks: [bookmark] } : {}),
     },
@@ -104,7 +168,7 @@ export async function searchPinterest({
   };
 
   const params = new URLSearchParams({
-    source_url: `/search/pins/?q=${encodeURIComponent(query)}`,
+    source_url: `/search/${scope}/?q=${encodeURIComponent(query)}`,
     data: JSON.stringify(data),
   });
 
@@ -139,10 +203,17 @@ export async function searchPinterest({
   const results = Array.isArray(payload?.results) ? payload.results : [];
   const bookmarkOut = json.resource_response?.bookmark ?? null;
 
-  const pins: Pin[] = results
-    .filter((r): r is RawPinterestPin => !!r && typeof r === "object")
-    .map(mapPin)
-    .filter((p) => p.id);
+  const raws = results.filter(
+    (r): r is RawPinterestPin => !!r && typeof r === "object" && !!r.id,
+  );
+  let pins: Pin[] = raws.map(mapPin);
+  if (scope === "videos") {
+    // A video search returns only clips with a working mp4.
+    const videos = await Promise.all(raws.map(resolveVideo));
+    pins = pins
+      .map((pin, i) => ({ ...pin, video: videos[i] }))
+      .filter((pin) => pin.video);
+  }
 
   return {
     query,
