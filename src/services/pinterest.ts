@@ -163,6 +163,7 @@ export async function searchPinterest({
   count,
   bookmark,
   scope = "pins",
+  checkVideos = true,
 }: SearchParams): Promise<SearchResponse> {
   const data: Record<string, unknown> = {
     options: {
@@ -214,7 +215,7 @@ export async function searchPinterest({
     (r): r is RawPinterestPin => !!r && typeof r === "object" && !!r.id,
   );
   let pins: Pin[] = raws.map(mapPin);
-  if (scope === "videos") {
+  if (scope === "videos" && checkVideos) {
     // A video search returns only clips with a working mp4.
     const videos = await Promise.all(raws.map(resolveVideo));
     pins = pins

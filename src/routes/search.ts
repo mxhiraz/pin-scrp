@@ -70,12 +70,17 @@ searchRouter.get("/", async (c) => {
   }
 
   try {
+    // Pages being skipped only pass their bookmark on; only the page returned has its videos checked.
     let cur = bookmark;
-    let result = await searchPinterest({ query, count, bookmark: cur, scope });
+    let checked = skipPages === 0;
+    let result = await searchPinterest({ query, count, bookmark: cur, scope, checkVideos: checked });
     for (let i = 0; i < skipPages && result.bookmark; i++) {
       cur = result.bookmark;
-      result = await searchPinterest({ query, count, bookmark: cur, scope });
+      checked = i === skipPages - 1;
+      result = await searchPinterest({ query, count, bookmark: cur, scope, checkVideos: checked });
     }
+    // The pages ran out before the one asked for: return the last one reached, checked.
+    if (!checked) result = await searchPinterest({ query, count, bookmark: cur, scope });
 
     const cacheable = ttl > 0 && !fresh && !skipPages;
     if (cacheable) await cache.set(key, result, ttl);

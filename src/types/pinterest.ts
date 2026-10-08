@@ -75,6 +75,8 @@ export interface SearchParams {
   count: number;
   bookmark?: string;
   scope?: Scope;
+  /** Check each video's mp4 (default). Off for a page that is only skipped past. */
+  checkVideos?: boolean;
 }
 
 export interface RawPinterestVideo {
